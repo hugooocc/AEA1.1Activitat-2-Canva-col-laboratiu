@@ -3,22 +3,19 @@ const http = require('http');
 const { Server } = require('socket.io');
 
 const app = express();
-const server = http.createServer(app);   // servidor HTTP normal
-const io = new Server(server);           // le "enganchamos" Socket.IO
-// Cuando alguien entra en la web, le enviamos el index.html
+const server = http.createServer(app);
+const io = new Server(server);
 
-const usuarios = {};   // ⬅️ NUEVO: fuera de io.on, compartido por todos
+const usuarios = {};
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
 function colorAleatorio() {
-    const tono = Math.floor(Math.random() * 360);   // 0-359
+    const tono = Math.floor(Math.random() * 360);
     return `hsl(${tono}, 80%, 50%)`;
 }
-
-
 
 io.on('connection', (socket) => {
     console.log('Se ha conectado:', socket.id);
@@ -39,17 +36,16 @@ io.on('connection', (socket) => {
         console.log(usuarios);
         io.emit('usuarios', usuarios);
     });
+
     socket.on('mover', (pos) => {
-        if (!usuarios[socket.id]) return;   // por si aún no ha dicho su nombre
+        if (!usuarios[socket.id]) return;
         usuarios[socket.id].x = pos.x;
         usuarios[socket.id].y = pos.y;
-        io.emit('usuarios', usuarios);      // ⬅️ enviar a TODOS
+        io.emit('usuarios', usuarios);
     });
-
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Servidor en http://localhost:${PORT}`);
 });
-
