@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cursores en tiempo real</title>
+    <style>
+        canvas {
+            border: 2px solid black;
+        }
+
+        canvas {
+            border: 2px solid black;
+            cursor: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Cursores en tiempo real</h1>
+    <canvas id="lienzo" width="800" height="600"></canvas>
+
+    <!-- Este archivo lo genera Socket.IO automáticamente, no tienes que crearlo -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const nombre = prompt('¿Cómo te llamas?');
+        const socket = io();                    // nos conectamos al servidor
+        socket.emit('nuevoUsuario', nombre);    // le enviamos nuestro nombre
+
+        const canvas = document.getElementById('lienzo');
+        const ctx = canvas.getContext('2d');   // el "pincel" con el que dibujaremos
+
+        // Cada vez que el ratón se mueve sobre el canvas...
+        canvas.addEventListener('mousemove', (e) => {
+            socket.emit('mover', { x: e.offsetX, y: e.offsetY });
+        });
+
+        socket.on('usuarios', (usuarios) => {
+            dibujar(usuarios);
+        });
+
+        function dibujar(usuarios) {
+            // 1. Borrar todo el canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Recorrer a todos los usuarios
+            for (const id in usuarios) {
+                const u = usuarios[id];
+
+                // 3. El círculo (el cursor)
+                ctx.beginPath();
+                ctx.arc(u.x, u.y, 8, 0, Math.PI * 2);
+                ctx.fillStyle = u.color;
+                ctx.fill();
+
+                // 4. El cuadrado con el nombre
+                ctx.font = '14px Arial';
+                const anchoTexto = ctx.measureText(u.nombre).width;
+                ctx.fillRect(u.x + 12, u.y + 12, anchoTexto + 12, 22);
+
+                // 5. El nombre dentro del cuadrado
+                ctx.fillStyle = 'white';
+                ctx.fillText(u.nombre, u.x + 18, u.y + 28);
+            }
+        }
+
+
+    </script>
+</body>
+
+</html>
